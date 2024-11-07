@@ -16,12 +16,12 @@ class MainTab(QtWidgets.QWidget):
     def __init__(self, stacked_widget):
         super().__init__()
         self.stacked_widget = stacked_widget    # The tabs list.
-        
+
         # Program name.
         self.program_name = QtWidgets.QLabel("D&D AI CHATBOTS", # Create a text label.
                                      alignment=QtCore.Qt.AlignCenter)
         self.program_name.setStyleSheet(universal_stylesheet) # Add style to text.
-        
+
         # Characters button.
         self.characters_menu_button = QtWidgets.QPushButton("CHARACTERS") # Create a button.
         self.characters_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
@@ -35,19 +35,19 @@ class MainTab(QtWidgets.QWidget):
         self.layout.addWidget(self.program_name)    # Add text label to the layout.
         self.layout.addWidget(self.characters_menu_button)  # Add characters button to the layout.
         self.layout.addWidget(self.exit_button)     # Add exit button to the layout.
-        
+
         # Button clicks handlers
         self.exit_button.clicked.connect(self.exit_button_clicked) # Call exit function.
         self.characters_menu_button.clicked.connect(self.characters_menu_button_clicked) # Go to characters menu.
 
     @QtCore.Slot()
-    
+
     def exit_button_clicked(self):
         '''
             exit_button_clicked() - termination function to finish program.
         '''
         sys.exit()
-    
+
     def characters_menu_button_clicked(self):
         '''
             characters_menu_button_clicked() - characters menu open function.
@@ -61,7 +61,7 @@ class CharactersTab(QtWidgets.QWidget):
     def __init__(self, stacked_widget):
         super().__init__()
         self.stacked_widget = stacked_widget    # The tabs list.
-        
+
         # Show the tab name.
         self.menu_name = QtWidgets.QLabel("Characters Menu", alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
@@ -87,17 +87,22 @@ if __name__ == "__main__":
 
     # Create a QStackedWidget - a list that will hold all the tabs we have.
     tabs_list = QtWidgets.QStackedWidget()
-    
+
     # Add the main tab to list.
     main_tab = MainTab(tabs_list)
     tabs_list.addWidget(main_tab)
-    
+
     # Add the characters tab.
     characters_tab = CharactersTab(tabs_list)
     tabs_list.addWidget(characters_tab)
-    
-    # Show the window.
-    tabs_list.resize(1280, 720)
-    tabs_list.show()
+
+    # Choose one of next showing modes:
+
+    # Show in window mode.
+    # tabs_list.resize(1280, 720)
+    # tabs_list.show()
+
+    # Show in fullscreen mode.
+    tabs_list.showFullScreen()
 
     sys.exit(app.exec())

@@ -1,6 +1,6 @@
-#
-#       pip install pyside6
-#
+'''
+        To install pyside6 run: pip install pyside6
+'''
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
 
@@ -10,31 +10,35 @@ universal_stylesheet =  """font-size: 32px;
                         """
 
 class MainTab(QtWidgets.QWidget):
+    '''
+        MainTab class is designed to contain the main menu of the program.
+    '''
     def __init__(self, stacked_widget):
         super().__init__()
-        self.stacked_widget = stacked_widget
-
-        # Exit button.
-        self.exit_button = QtWidgets.QPushButton("EXIT") # Create a button.
-        self.exit_button.setStyleSheet(universal_stylesheet) # Add style to a button.
+        self.stacked_widget = stacked_widget    # The tabs list.
+        
+        # Program name.
+        self.program_name = QtWidgets.QLabel("D&D AI CHATBOTS", # Create a text label.
+                                     alignment=QtCore.Qt.AlignCenter)
+        self.program_name.setStyleSheet(universal_stylesheet) # Add style to text.
         
         # Characters button.
         self.characters_menu_button = QtWidgets.QPushButton("CHARACTERS") # Create a button.
         self.characters_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
 
-        # Program name.
-        self.program_name = QtWidgets.QLabel("D&D AI CHATBOTS", # Create a text label.
-                                     alignment=QtCore.Qt.AlignCenter)
-        self.program_name.setStyleSheet(universal_stylesheet) # Add style to text.
+        # Exit button.
+        self.exit_button = QtWidgets.QPushButton("EXIT") # Create a button.
+        self.exit_button.setStyleSheet(universal_stylesheet) # Add style to a button.
 
-        main_menu_layout = QtWidgets.QVBoxLayout(self)
-        self.layout = main_menu_layout    # Create layout.
+        # Layout.
+        self.layout = QtWidgets.QVBoxLayout(self)    # Create layout.
         self.layout.addWidget(self.program_name)    # Add text label to the layout.
         self.layout.addWidget(self.characters_menu_button)  # Add characters button to the layout.
         self.layout.addWidget(self.exit_button)     # Add exit button to the layout.
         
-        self.exit_button.clicked.connect(self.exit_button_clicked) # Call termination function.
-        self.characters_menu_button.clicked.connect(self.characters_menu_button_clicked)    # Go to characters menu.
+        # Button clicks handlers
+        self.exit_button.clicked.connect(self.exit_button_clicked) # Call exit function.
+        self.characters_menu_button.clicked.connect(self.characters_menu_button_clicked) # Go to characters menu.
 
     @QtCore.Slot()
     
@@ -51,20 +55,26 @@ class MainTab(QtWidgets.QWidget):
         self.stacked_widget.setCurrentIndex(1)
 
 class CharactersTab(QtWidgets.QWidget):
+    '''
+        CharactersTab class is designed to hold the characters widgets that user has at the moment.
+    '''
     def __init__(self, stacked_widget):
         super().__init__()
-        self.stacked_widget = stacked_widget
+        self.stacked_widget = stacked_widget    # The tabs list.
         
+        # Show the tab name.
+        self.menu_name = QtWidgets.QLabel("Characters Menu", alignment=QtCore.Qt.AlignCenter)
+        self.menu_name.setStyleSheet(universal_stylesheet)
+
+        # Back button.
         self.back_button = QtWidgets.QPushButton("BACK")
         self.back_button.setStyleSheet(universal_stylesheet)
         self.back_button.clicked.connect(self.back_button_clicked)
 
-        self.menu_name = QtWidgets.QLabel("Characters Menu", alignment=QtCore.Qt.AlignCenter)
-        self.menu_name.setStyleSheet(universal_stylesheet)
-
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(self.menu_name)
-        layout.addWidget(self.back_button)
+        # Layout.
+        layout = QtWidgets.QVBoxLayout(self)    # Create layout.
+        layout.addWidget(self.menu_name)    # Add the tab name to the layout.
+        layout.addWidget(self.back_button)  # Add the back button to the layout.
 
     def back_button_clicked(self):
         '''
@@ -75,7 +85,7 @@ class CharactersTab(QtWidgets.QWidget):
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
 
-    # Create a QStackedWidget - a list that will hold all the tabs we have
+    # Create a QStackedWidget - a list that will hold all the tabs we have.
     tabs_list = QtWidgets.QStackedWidget()
     
     # Add the main tab to list.

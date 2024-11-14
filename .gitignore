@@ -4,6 +4,7 @@ __pycache__/
 *.vscode/
 *.idea/
 venv/
+env/
 
 # Ignore user settings and characters.
 user_settings.json

@@ -3,16 +3,20 @@
 '''
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
+from settings_manager import load_user_settings, save_user_settings
+from characters_manager import load_user_characters, save_user_characters
+
+# User's characters.
+user_characters = load_user_characters()
+
+# Load user's settings.
+user_settings = load_user_settings()
+fullscreen_mode = user_settings.get("fullscreen", False)
 
 # Universal stylesheet - uses CSS syntax.
 universal_stylesheet =  """font-size: 32px;
                            font-family: Times New Roman;
                         """
-
-# List of characters.
-# list_from_file = # TODO: add characters from file (that every user will have) to the list.
-# characters_list = list_from_file
-characters_list = []
 
 class MainTab(QtWidgets.QWidget):
     '''
@@ -23,36 +27,34 @@ class MainTab(QtWidgets.QWidget):
     '''
     def __init__(self, global_tabs_list):
         super().__init__()
-        self.global_tabs_list = global_tabs_list    # The tabs list.
+        self.global_tabs_list = global_tabs_list # The tabs list.
 
-        # Program name.
+        # Program name (to be discussed). 
         self.program_name = QtWidgets.QLabel("D&D AI CHATBOTS", # Create a text label.
-                                     alignment=QtCore.Qt.AlignCenter)
+                                             alignment=QtCore.Qt.AlignCenter) # Text alignment.
         self.program_name.setStyleSheet(universal_stylesheet) # Add style to text.
 
         # Characters button.
         self.characters_menu_button = QtWidgets.QPushButton("CHARACTERS") # Create a button.
         self.characters_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
+        self.characters_menu_button.clicked.connect(self.characters_menu_button_clicked) # Go to characters menu.
 
         # Settings button.
-        self.settings_menu_button = QtWidgets.QPushButton("SETTINGS")   # Create a button.
-        self.settings_menu_button.setStyleSheet(universal_stylesheet)   # Add style to a button.
+        self.settings_menu_button = QtWidgets.QPushButton("SETTINGS") # Create a button.
+        self.settings_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
+        self.settings_menu_button.clicked.connect(self.settings_menu_button_clicked) # Go to settings menu.
 
         # Exit button.
         self.exit_button = QtWidgets.QPushButton("EXIT") # Create a button.
         self.exit_button.setStyleSheet(universal_stylesheet) # Add style to a button.
+        self.exit_button.clicked.connect(self.exit_button_clicked) # Call exit function.
 
         # Layout.
-        self.layout = QtWidgets.QVBoxLayout(self)    # Create layout.
-        self.layout.addWidget(self.program_name)    # Add text label to the layout.
-        self.layout.addWidget(self.characters_menu_button)  # Add characters button to the layout.
-        self.layout.addWidget(self.settings_menu_button)    # Add settings button to the layout.
-        self.layout.addWidget(self.exit_button)     # Add exit button to the layout.
-
-        # Button clicks handlers
-        self.characters_menu_button.clicked.connect(self.characters_menu_button_clicked) # Go to characters menu.
-        self.settings_menu_button.clicked.connect(self.settings_menu_button_clicked)    # Go to settings menu.
-        self.exit_button.clicked.connect(self.exit_button_clicked) # Call exit function.
+        self.layout = QtWidgets.QVBoxLayout(self) # Create layout.
+        self.layout.addWidget(self.program_name) # Add text label to the layout.
+        self.layout.addWidget(self.characters_menu_button) # Add characters button to the layout.
+        self.layout.addWidget(self.settings_menu_button) # Add settings button to the layout.
+        self.layout.addWidget(self.exit_button) # Add exit button to the layout.
 
     def characters_menu_button_clicked(self):
         '''
@@ -78,16 +80,17 @@ class SettingsTab(QtWidgets.QWidget):
     '''
     def __init__(self, global_tabs_list):
         super().__init__()
-        self.global_tabs_list = global_tabs_list    # The tabs list.
+        self.global_tabs_list = global_tabs_list # The tabs list.
 
         # Show the tab name.
         self.menu_name = QtWidgets.QLabel("Settings", alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
 
         # Screen mode settings.
-        self.fullscreen_mode = QtWidgets.QCheckBox("Fullscreen mode")
-        self.fullscreen_mode.setStyleSheet(universal_stylesheet)
-        self.fullscreen_mode.stateChanged.connect(self.toggle_fullscreen_checkbox)
+        self.fullscreen_checkbox = QtWidgets.QCheckBox("Fullscreen mode")
+        self.fullscreen_checkbox.setStyleSheet(universal_stylesheet)
+        self.fullscreen_checkbox.setChecked(fullscreen_mode)
+        self.fullscreen_checkbox.stateChanged.connect(self.toggle_fullscreen_checkbox)
 
         # Back button.
         self.back_button = QtWidgets.QPushButton("BACK")
@@ -95,10 +98,10 @@ class SettingsTab(QtWidgets.QWidget):
         self.back_button.clicked.connect(self.back_button_clicked)
 
         # Layout.
-        layout = QtWidgets.QVBoxLayout(self)    # Create layout.
-        layout.addWidget(self.menu_name)    # Add the tab name to the layout.
-        layout.addWidget(self.fullscreen_mode)  #Add the fullscreen mode checkbox.
-        layout.addWidget(self.back_button)  # Add the back button to the layout.
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.menu_name)
+        layout.addWidget(self.fullscreen_checkbox)
+        layout.addWidget(self.back_button)
     
     def toggle_fullscreen_checkbox(self, state):
         '''
@@ -106,10 +109,13 @@ class SettingsTab(QtWidgets.QWidget):
                 - Fullscreen if checkbox is checked.
                 - Window mode if checkbox is not checked.
         '''
-        if self.fullscreen_mode.isChecked():
+        self.fullscreen_mode = bool(state)
+        user_settings["fullscreen"] = self.fullscreen_mode
+        save_user_settings(user_settings)
+
+        if self.fullscreen_checkbox.isChecked():
             self.global_tabs_list.showFullScreen()
         else:
-            # self.global_tabs_list.resize(1280, 720)
             self.global_tabs_list.showNormal()
 
     def back_button_clicked(self):
@@ -124,7 +130,7 @@ class CharactersMenuTab(QtWidgets.QWidget):
     '''
     def __init__(self, global_tabs_list):
         super().__init__()
-        self.global_tabs_list = global_tabs_list    # The tabs list.
+        self.global_tabs_list = global_tabs_list # The tabs list.
 
         # Show the tab name.
         self.menu_name = QtWidgets.QLabel("Characters Menu", alignment=QtCore.Qt.AlignCenter)
@@ -141,22 +147,28 @@ class CharactersMenuTab(QtWidgets.QWidget):
         self.back_button.clicked.connect(self.back_button_clicked)
 
         # Layout.
-        layout = QtWidgets.QVBoxLayout(self)    # Create layout.
-        layout.addWidget(self.menu_name)    # Add the tab name to the layout.
-        if len(characters_list) < 1:
-            layout.addWidget(self.create_character_button)  # Add create character button to the layout.
-        else:   # If there are any characters: add them on the layout.
-            for i in range(len(characters_list)):
-                layout.addWidget(self.characters_list[i])   # Add character chat button to the layout.
-            layout.addWidget(self.create_character_button)  # Add create character button to the layout.
-        layout.addWidget(self.back_button)  # Add the back button to the layout.
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.menu_name)
+
+        # TODO: implement the creation of new buttons for every character that a user has.
+        if not user_characters: # User does not have any characters - the set is empty
+            layout.addWidget(self.create_character_button) # Add create character button to the layout.
+        else: # If there are any characters: add them on the layout.
+            for character in user_characters:
+                name_button = character.name
+                self.name_button = QtWidgets.QPushButton(f"{name_button}")
+                self.name_button.setStyleSheet(universal_stylesheet)
+                layout.addWidget(self.name_button) # Add character chat button to the layout.
+
+            layout.addWidget(self.create_character_button) # Add create character button to the layout.
+        
+        layout.addWidget(self.back_button) # Add the back button to the layout.
 
     def create_character_button_clicked(self):
         '''
             create_character_button_clicked() - opens character creation tab.
         '''
-        self.global_tabs_list.setCurrentIndex(1)
-        print("Create character button was clicked, but have not been implemented yet.")
+        self.global_tabs_list.setCurrentIndex(3)
 
     def back_button_clicked(self):
         '''
@@ -170,10 +182,10 @@ class CharactersCreationTab(QtWidgets.QWidget):
     '''
     def __init__(self, global_tabs_list):
         super().__init__()
-        self.global_tabs_list = global_tabs_list    # The tabs list.
+        self.global_tabs_list = global_tabs_list # The tabs list.
 
         # Show the tab name.
-        self.menu_name = QtWidgets.QLabel("Characters Menu", alignment=QtCore.Qt.AlignCenter)
+        self.menu_name = QtWidgets.QLabel("Create a character", alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
 
         # TODO: implement the parameters to create characters.
@@ -183,11 +195,16 @@ class CharactersCreationTab(QtWidgets.QWidget):
         self.back_button.setStyleSheet(universal_stylesheet)
         self.back_button.clicked.connect(self.back_button_clicked)
 
+        # Layout.
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.menu_name)
+        layout.addWidget(self.back_button)
+
     def back_button_clicked(self):
         '''
-            back_button_clicked() - returns to the main menu under 0 index in tabs list.
+            back_button_clicked() - returns to the characters menu under 1 index in tabs list.
         '''
-        self.global_tabs_list.setCurrentIndex(0)
+        self.global_tabs_list.setCurrentIndex(1)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
@@ -210,9 +227,12 @@ if __name__ == "__main__":
     # Add the character creation tab to the list.
     character_creation_tab = CharactersCreationTab(global_tabs_list)
     global_tabs_list.addWidget(character_creation_tab)
-    
-    # Show in normal (window) mode.
-    global_tabs_list.resize(800, 600)
-    global_tabs_list.showNormal()
+
+    # Check settings for the fullscreen mode.
+    if fullscreen_mode:
+        global_tabs_list.showFullScreen()
+    else:
+        global_tabs_list.showNormal()
+        global_tabs_list.resize(800, 600)
 
     sys.exit(app.exec())

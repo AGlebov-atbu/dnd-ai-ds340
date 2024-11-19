@@ -15,13 +15,18 @@ def load_user_characters():
     try:
         with open(CHARACTERS_FILE, "r") as file:
             characters_data = json.load(file)
-            # Transform into characters objects.
-            return [Character(**char) for char in characters_data]
+            # Преобразуем в объекты, если это словари
+            return [
+                Character(**char) if isinstance(char, dict) else char
+                for char in characters_data
+            ]
     except FileNotFoundError:
-        # Default: there are no characters (yet).
         return []
+
 
 def save_user_characters(characters):
     """Save characters to a JSON file."""
     with open(CHARACTERS_FILE, "w") as file:
-        json.dump([char.__dict__ for char in characters], file)
+        # Проверяем, объекты ли это или словари, и преобразуем только объекты.
+        json.dump([char.__dict__ if hasattr(char, "__dict__") else char for char in characters], file)
+

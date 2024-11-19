@@ -163,6 +163,45 @@ class CharactersMenuTab(QtWidgets.QWidget):
         
         layout.addWidget(self.back_button) # Add the back button to the layout.
 
+    def update_characters(self):
+        '''
+            update_characters() - updates the displayed list of characters on the Characters page.
+        '''
+        # Load updated characters from the file.
+        user_characters = load_user_characters()
+
+        # Clear the layout or widget containing the characters.
+        for i in reversed(range(self.layout().count())):
+            widget = self.layout().itemAt(i).widget()
+            if widget:
+                widget.deleteLater()
+        
+        # Show the tab name.
+        self.menu_name = QtWidgets.QLabel("Characters Menu", alignment=QtCore.Qt.AlignCenter)
+        self.menu_name.setStyleSheet(universal_stylesheet)
+        
+        # Create character button.
+        self.create_character_button = QtWidgets.QPushButton("ADD")
+        self.create_character_button.setStyleSheet(universal_stylesheet)
+        self.create_character_button.clicked.connect(self.create_character_button_clicked)
+
+        # Back button.
+        self.back_button = QtWidgets.QPushButton("BACK")
+        self.back_button.setStyleSheet(universal_stylesheet)
+        self.back_button.clicked.connect(self.back_button_clicked)
+        
+        self.layout().addWidget(self.menu_name)
+
+        # Add characters to the layout.
+        for character in user_characters:
+            name_button = character.name
+            self.name_button = QtWidgets.QPushButton(f"{name_button}")
+            self.name_button.setStyleSheet(universal_stylesheet)
+            self.layout().addWidget(self.name_button) # Add character chat button to the layout.
+
+        self.layout().addWidget(self.create_character_button) # Add create character button to the layout.
+        self.layout().addWidget(self.back_button) # Add the back button to the layout.
+
     def create_character_button_clicked(self):
         '''
             create_character_button_clicked() - opens character creation tab.
@@ -262,9 +301,14 @@ class CharactersCreationTab(QtWidgets.QWidget):
         characters.append(new_character)
         save_user_characters(characters)
 
+        # Update the characters list in the CharactersMenuTab.
+        characters_menu_tab = self.global_tabs_list.widget(1)
+        if hasattr(characters_menu_tab, "update_characters"):
+            characters_menu_tab.update_characters()
+
         # Redirect to the characters menu.
         self.global_tabs_list.setCurrentIndex(1)
-
+    
     def back_button_clicked(self):
         '''
             back_button_clicked() - returns to the characters menu under 1 index in tabs list.

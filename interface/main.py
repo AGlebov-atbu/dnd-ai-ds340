@@ -4,10 +4,13 @@
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
 from settings_manager import load_user_settings, save_user_settings
-from characters_manager import load_user_characters, save_user_characters
+from characters_manager import load_user_characters, save_user_characters, get_last_cid
 
 # User's characters.
 user_characters = load_user_characters()
+
+# Last character's ID.
+last_cid = get_last_cid()
 
 # Load user's settings.
 user_settings = load_user_settings()
@@ -132,36 +135,38 @@ class CharactersMenuTab(QtWidgets.QWidget):
         super().__init__()
         self.global_tabs_list = global_tabs_list # The tabs list.
 
+        # Main layout of the page.
+        layout = QtWidgets.QVBoxLayout(self)
+
         # Show the tab name.
         self.menu_name = QtWidgets.QLabel("Characters Menu", alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
+        layout.addWidget(self.menu_name)
+
+        # Scroll Area for the list of characters.
+        self.scroll_area = QtWidgets.QScrollArea()
+        self.scroll_area.setWidgetResizable(True) # Make it resizable.
+        layout.addWidget(self.scroll_area)
+
+        # Container inside the Scroll Area.
+        self.scroll_content = QtWidgets.QWidget()
+        self.scroll_layout = QtWidgets.QVBoxLayout(self.scroll_content)
+        self.scroll_area.setWidget(self.scroll_content)
 
         # Create character button.
         self.create_character_button = QtWidgets.QPushButton("ADD")
         self.create_character_button.setStyleSheet(universal_stylesheet)
         self.create_character_button.clicked.connect(self.create_character_button_clicked)
+        layout.addWidget(self.create_character_button)
 
         # Back button.
         self.back_button = QtWidgets.QPushButton("BACK")
         self.back_button.setStyleSheet(universal_stylesheet)
         self.back_button.clicked.connect(self.back_button_clicked)
+        layout.addWidget(self.back_button)
 
-        # Layout.
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(self.menu_name)
-
-        if not user_characters: # User does not have any characters - the set is empty
-            layout.addWidget(self.create_character_button) # Add create character button to the layout.
-        else: # If there are any characters: add them on the layout.
-            for character in user_characters:
-                name_button = character.name
-                self.name_button = QtWidgets.QPushButton(f"{name_button}")
-                self.name_button.setStyleSheet(universal_stylesheet)
-                layout.addWidget(self.name_button) # Add character chat button to the layout.
-
-            layout.addWidget(self.create_character_button) # Add create character button to the layout.
-        
-        layout.addWidget(self.back_button) # Add the back button to the layout.
+        # Add characters to the layout.
+        self.update_characters()
 
     def update_characters(self):
         '''
@@ -170,43 +175,57 @@ class CharactersMenuTab(QtWidgets.QWidget):
         # Load updated characters from the file.
         user_characters = load_user_characters()
 
-        # Clear the layout or widget containing the characters.
-        for i in reversed(range(self.layout().count())):
-            widget = self.layout().itemAt(i).widget()
+        # Очистка текущего списка в scroll_layout
+        for i in reversed(range(self.scroll_layout.count())):
+            widget = self.scroll_layout.itemAt(i).widget()
             if widget:
                 widget.deleteLater()
-        
-        # Show the tab name.
-        self.menu_name = QtWidgets.QLabel("Characters Menu", alignment=QtCore.Qt.AlignCenter)
-        self.menu_name.setStyleSheet(universal_stylesheet)
-        
-        # Create character button.
-        self.create_character_button = QtWidgets.QPushButton("ADD")
-        self.create_character_button.setStyleSheet(universal_stylesheet)
-        self.create_character_button.clicked.connect(self.create_character_button_clicked)
 
-        # Back button.
-        self.back_button = QtWidgets.QPushButton("BACK")
-        self.back_button.setStyleSheet(universal_stylesheet)
-        self.back_button.clicked.connect(self.back_button_clicked)
-        
-        self.layout().addWidget(self.menu_name)
-
-        # Add characters to the layout.
+        # Add characters to the scroll_layout
         for character in user_characters:
-            name_button = character.name
-            self.name_button = QtWidgets.QPushButton(f"{name_button}")
-            self.name_button.setStyleSheet(universal_stylesheet)
-            self.layout().addWidget(self.name_button) # Add character chat button to the layout.
+            character_row = QtWidgets.QHBoxLayout() # Horizontal layout for character's button and delete button.
 
-        self.layout().addWidget(self.create_character_button) # Add create character button to the layout.
-        self.layout().addWidget(self.back_button) # Add the back button to the layout.
+            # Character's button.
+            character_button = QtWidgets.QPushButton(character.name)
+            character_button.setStyleSheet(universal_stylesheet)
+            character_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+
+            # Delete button.
+            delete_button = QtWidgets.QPushButton("❌")
+            delete_button.setStyleSheet("color: red; font-weight: bold;")
+            delete_button.setFixedWidth(30)
+            delete_button.clicked.connect(lambda ch, cid=character.cid: self.delete_character(cid))
+
+            # Add buttons to the horizontal layout.
+            character_row.addWidget(character_button)
+            character_row.addWidget(delete_button)
+
+            # Add horizontal layout to the vertical layout.
+            row_widget = QtWidgets.QWidget()
+            row_widget.setLayout(character_row)
+            self.scroll_layout.addWidget(row_widget)
 
     def create_character_button_clicked(self):
         '''
             create_character_button_clicked() - opens character creation tab.
         '''
         self.global_tabs_list.setCurrentIndex(3)
+    
+    def delete_character(self, character_id):
+        '''
+            delete_character() - deletes a character from the JSON file and updates the interface based on character's ID.
+        '''
+        # Load characters from the file.
+        user_characters = load_user_characters()
+
+        # Delete the character based on its ID.
+        updated_characters = [char for char in user_characters if char.cid != character_id]
+
+        # Save the updated list of characters.
+        save_user_characters(updated_characters)
+
+        # Update the interface.
+        self.update_characters()
 
     def back_button_clicked(self):
         '''
@@ -226,7 +245,6 @@ class CharactersCreationTab(QtWidgets.QWidget):
         self.menu_name = QtWidgets.QLabel("Create a character", alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
 
-        # TODO: implement the parameters to create characters.
         # Character name input.
         self.name_label = QtWidgets.QLabel("Character Name:")
         self.name_input = QtWidgets.QLineEdit()
@@ -278,6 +296,9 @@ class CharactersCreationTab(QtWidgets.QWidget):
         '''
             save_character() - saves the character data to the file and redirects to the characters menu.
         '''
+        # Make last_cid be global.
+        global last_cid
+        
         # Collect character data.
         name = self.name_input.text()
         age = self.age_input.value()
@@ -289,15 +310,20 @@ class CharactersCreationTab(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, "Input Error", "Character name cannot be empty.")
             return
 
+        # Generate a new unique cid.
+        last_cid += 1
+
         # Load existing characters and add the new one.
         characters = load_user_characters()
         new_character = {
+            "cid": last_cid,
             "name": name,
             "age": age,
             "positive_traits": positive_traits,
             "negative_traits": negative_traits,
             "lore": lore
         }
+        
         characters.append(new_character)
         save_user_characters(characters)
 

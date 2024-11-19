@@ -150,7 +150,6 @@ class CharactersMenuTab(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.menu_name)
 
-        # TODO: implement the creation of new buttons for every character that a user has.
         if not user_characters: # User does not have any characters - the set is empty
             layout.addWidget(self.create_character_button) # Add create character button to the layout.
         else: # If there are any characters: add them on the layout.
@@ -189,6 +188,31 @@ class CharactersCreationTab(QtWidgets.QWidget):
         self.menu_name.setStyleSheet(universal_stylesheet)
 
         # TODO: implement the parameters to create characters.
+        # Character name input.
+        self.name_label = QtWidgets.QLabel("Character Name:")
+        self.name_input = QtWidgets.QLineEdit()
+
+        # Character age input.
+        self.age_label = QtWidgets.QLabel("Character Age:")
+        self.age_input = QtWidgets.QSpinBox()
+        self.age_input.setRange(0, 150)
+
+        # Positive traits input.
+        self.positive_label = QtWidgets.QLabel("Positive Traits (comma-separated):")
+        self.positive_input = QtWidgets.QLineEdit()
+
+        # Negative traits input.
+        self.negative_label = QtWidgets.QLabel("Negative Traits (comma-separated):")
+        self.negative_input = QtWidgets.QLineEdit()
+
+        # Character lore input.
+        self.lore_label = QtWidgets.QLabel("Character Lore:")
+        self.lore_input = QtWidgets.QTextEdit()
+
+        # Save button.
+        self.save_button = QtWidgets.QPushButton("SAVE")
+        self.save_button.setStyleSheet(universal_stylesheet)
+        self.save_button.clicked.connect(self.save_character)
 
         # Back button.
         self.back_button = QtWidgets.QPushButton("BACK")
@@ -198,7 +222,48 @@ class CharactersCreationTab(QtWidgets.QWidget):
         # Layout.
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.menu_name)
+        layout.addWidget(self.name_label)
+        layout.addWidget(self.name_input)
+        layout.addWidget(self.age_label)
+        layout.addWidget(self.age_input)
+        layout.addWidget(self.positive_label)
+        layout.addWidget(self.positive_input)
+        layout.addWidget(self.negative_label)
+        layout.addWidget(self.negative_input)
+        layout.addWidget(self.lore_label)
+        layout.addWidget(self.lore_input)
+        layout.addWidget(self.save_button)
         layout.addWidget(self.back_button)
+
+    def save_character(self):
+        '''
+            save_character() - saves the character data to the file and redirects to the characters menu.
+        '''
+        # Collect character data.
+        name = self.name_input.text()
+        age = self.age_input.value()
+        positive_traits = [trait.strip() for trait in self.positive_input.text().split(",") if trait.strip()]
+        negative_traits = [trait.strip() for trait in self.negative_input.text().split(",") if trait.strip()]
+        lore = self.lore_input.toPlainText()
+
+        if not name:
+            QtWidgets.QMessageBox.warning(self, "Input Error", "Character name cannot be empty.")
+            return
+
+        # Load existing characters and add the new one.
+        characters = load_user_characters()
+        new_character = {
+            "name": name,
+            "age": age,
+            "positive_traits": positive_traits,
+            "negative_traits": negative_traits,
+            "lore": lore
+        }
+        characters.append(new_character)
+        save_user_characters(characters)
+
+        # Redirect to the characters menu.
+        self.global_tabs_list.setCurrentIndex(1)
 
     def back_button_clicked(self):
         '''

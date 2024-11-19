@@ -10,7 +10,8 @@ def load_user_settings():
         with open(SETTINGS_FILE, "r") as file:
             settings = json.load(file)
     except FileNotFoundError:
-        settings = {"fullscreen": False}  # Default settings
+        # Default settings.
+        settings = {"fullscreen": False}
     return settings
 
 def save_user_settings(settings):

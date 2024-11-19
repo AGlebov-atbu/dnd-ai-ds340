@@ -15,7 +15,7 @@ def load_user_characters():
     try:
         with open(CHARACTERS_FILE, "r") as file:
             characters_data = json.load(file)
-            # Преобразуем в объекты, если это словари
+            # Make Character objects from dictionaries.
             return [
                 Character(**char) if isinstance(char, dict) else char
                 for char in characters_data
@@ -27,6 +27,5 @@ def load_user_characters():
 def save_user_characters(characters):
     """Save characters to a JSON file."""
     with open(CHARACTERS_FILE, "w") as file:
-        # Проверяем, объекты ли это или словари, и преобразуем только объекты.
+        # Transfer Character objects only.
         json.dump([char.__dict__ if hasattr(char, "__dict__") else char for char in characters], file)
-

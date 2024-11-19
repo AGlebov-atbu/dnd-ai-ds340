@@ -326,6 +326,9 @@ class CharactersCreationTab(QtWidgets.QWidget):
         
         characters.append(new_character)
         save_user_characters(characters)
+        
+        # Reset the form.
+        self.reset_form()
 
         # Update the characters list in the CharactersMenuTab.
         characters_menu_tab = self.global_tabs_list.widget(1)
@@ -334,12 +337,24 @@ class CharactersCreationTab(QtWidgets.QWidget):
 
         # Redirect to the characters menu.
         self.global_tabs_list.setCurrentIndex(1)
-    
+
+    def reset_form(self):
+        '''
+            reset_form() - resets all input fields to their default values.
+        '''
+        self.name_input.clear()
+        self.age_input.setValue(0)
+        self.positive_input.clear()
+        self.negative_input.clear()
+        self.lore_input.clear()
+
     def back_button_clicked(self):
         '''
             back_button_clicked() - returns to the characters menu under 1 index in tabs list.
         '''
         self.global_tabs_list.setCurrentIndex(1)
+
+# TODO: implement a character's chat tab so that user can talk with a character.
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])

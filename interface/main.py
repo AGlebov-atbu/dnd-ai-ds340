@@ -1,5 +1,6 @@
 '''
         To install pyside6 run: pip install pyside6
+        To run this app: run main.py file.
 '''
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui

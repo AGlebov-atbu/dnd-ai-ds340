@@ -16,8 +16,13 @@ last_cid = get_last_cid()
 # Load user's settings.
 user_settings = load_user_settings()
 fullscreen_mode = user_settings.get("fullscreen", False)
-language_mode = user_settings.get("language", "en")
-language = load_language("ru")
+current_language = user_settings.get("language", "en")
+translations = load_language(current_language)
+
+def update_language(language_code):
+    global translations
+    translations = load_language(language_code)
+    settings_tab.update_translations(translations)
 
 # Universal stylesheet - uses CSS syntax.
 universal_stylesheet =  """font-size: 32px;
@@ -41,17 +46,17 @@ class MainTab(QtWidgets.QWidget):
         self.program_name.setStyleSheet(universal_stylesheet) # Add style to text.
 
         # Characters menu button.
-        self.characters_menu_button = QtWidgets.QPushButton(language["button_characters_menu"]) # Create a button.
+        self.characters_menu_button = QtWidgets.QPushButton(translations["button_characters_menu"]) # Create a button.
         self.characters_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
         self.characters_menu_button.clicked.connect(self.characters_menu_button_clicked) # Go to characters menu.
 
         # Settings menu button.
-        self.settings_menu_button = QtWidgets.QPushButton(language["button_settings_menu"]) # Create a button.
+        self.settings_menu_button = QtWidgets.QPushButton(translations["button_settings_menu"]) # Create a button.
         self.settings_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
         self.settings_menu_button.clicked.connect(self.settings_menu_button_clicked) # Go to settings menu.
 
         # Exit button.
-        self.exit_button = QtWidgets.QPushButton(language["button_exit"]) # Create a button.
+        self.exit_button = QtWidgets.QPushButton(translations["button_exit"]) # Create a button.
         self.exit_button.setStyleSheet(universal_stylesheet) # Add style to a button.
         self.exit_button.clicked.connect(self.exit_button_clicked) # Call exit function.
 
@@ -84,22 +89,31 @@ class SettingsTab(QtWidgets.QWidget):
     '''
         SettingsTab class is designed to hold the program parameters that user wants to see.
     '''
-    def __init__(self, global_tabs_list):
+    def __init__(self, global_tabs_list, translations, update_language_callback):
         super().__init__()
         self.global_tabs_list = global_tabs_list # The tabs list.
+        self.translations = translations
+        self.update_language_callback = update_language_callback
 
         # Show the tab name.
-        self.menu_name = QtWidgets.QLabel(language["title_settings_menu"], alignment=QtCore.Qt.AlignCenter)
+        self.menu_name = QtWidgets.QLabel(translations["title_settings_menu"], alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
 
         # Screen mode settings.
-        self.fullscreen_checkbox = QtWidgets.QCheckBox(language["label_settings_fullscreen"])
+        self.fullscreen_checkbox = QtWidgets.QCheckBox(translations["label_settings_fullscreen"])
         self.fullscreen_checkbox.setStyleSheet(universal_stylesheet)
         self.fullscreen_checkbox.setChecked(fullscreen_mode)
         self.fullscreen_checkbox.stateChanged.connect(self.toggle_fullscreen_checkbox)
+        
+        # Language selection.
+        self.language_label = QtWidgets.QLabel(self.translations["label_settings_language"])
+        self.language_dropdown = QtWidgets.QComboBox()
+        self.language_dropdown.addItems(["English", "Русский"])
+        self.language_dropdown.setCurrentIndex(0 if user_settings.get("language", "en") == "en" else 1)
+        self.language_dropdown.currentIndexChanged.connect(self.change_language)
 
         # Back button.
-        self.back_button = QtWidgets.QPushButton(language["button_back"])
+        self.back_button = QtWidgets.QPushButton(translations["button_back"])
         self.back_button.setStyleSheet(universal_stylesheet)
         self.back_button.clicked.connect(self.back_button_clicked)
 
@@ -107,6 +121,8 @@ class SettingsTab(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.menu_name)
         layout.addWidget(self.fullscreen_checkbox)
+        layout.addWidget(self.language_label)
+        layout.addWidget(self.language_dropdown)
         layout.addWidget(self.back_button)
     
     def toggle_fullscreen_checkbox(self, state):
@@ -123,6 +139,43 @@ class SettingsTab(QtWidgets.QWidget):
             self.global_tabs_list.showFullScreen()
         else:
             self.global_tabs_list.showNormal()
+
+    def change_language(self, index):
+        '''
+            change_language() - asks the user to restart the application to apply the new language.
+        '''
+        language_code = "en" if index == 0 else "ru"
+
+        # Show the message.
+        confirmation = QtWidgets.QMessageBox()
+        confirmation.setIcon(QtWidgets.QMessageBox.Question)
+        confirmation.setWindowTitle(self.translations.get("title_settings_change_language", "Change Language"))
+        confirmation.setText(self.translations.get(
+            "text_settings_change_language", 
+            "To change the language, you need to restart the application. Do you agree?"
+        ))
+        confirmation.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+        # Set button labels.
+        yes_button = confirmation.button(QtWidgets.QMessageBox.Yes)
+        yes_button.setText(self.translations.get("button_yes", "Yes"))
+        no_button = confirmation.button(QtWidgets.QMessageBox.No)
+        no_button.setText(self.translations.get("button_no", "No"))
+
+        # Wait for the response.
+        response = confirmation.exec()
+
+        if response == QtWidgets.QMessageBox.Yes:
+            # Save the language setting.
+            user_settings["language"] = language_code
+            save_user_settings(user_settings)
+
+            # Restart the app.
+            QtCore.QCoreApplication.quit()
+            QtCore.QProcess.startDetached(sys.executable, sys.argv)
+        else:
+            # If user choose "No" - do nothing.
+            self.language_dropdown.setCurrentIndex(0 if user_settings.get("language", "en") == "en" else 1)
 
     def back_button_clicked(self):
         '''
@@ -142,7 +195,7 @@ class CharactersMenuTab(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
 
         # Show the tab name.
-        self.menu_name = QtWidgets.QLabel(language["title_characters_menu"], alignment=QtCore.Qt.AlignCenter)
+        self.menu_name = QtWidgets.QLabel(translations["title_characters_menu"], alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
         layout.addWidget(self.menu_name)
 
@@ -157,13 +210,13 @@ class CharactersMenuTab(QtWidgets.QWidget):
         self.scroll_area.setWidget(self.scroll_content)
 
         # Create character button.
-        self.create_character_button = QtWidgets.QPushButton(language["button_create_character"])
+        self.create_character_button = QtWidgets.QPushButton(translations["button_create_character"])
         self.create_character_button.setStyleSheet(universal_stylesheet)
         self.create_character_button.clicked.connect(self.create_character_button_clicked)
         layout.addWidget(self.create_character_button)
 
         # Back button.
-        self.back_button = QtWidgets.QPushButton(language["button_back"])
+        self.back_button = QtWidgets.QPushButton(translations["button_back"])
         self.back_button.setStyleSheet(universal_stylesheet)
         self.back_button.clicked.connect(self.back_button_clicked)
         layout.addWidget(self.back_button)
@@ -245,37 +298,37 @@ class CharactersCreationTab(QtWidgets.QWidget):
         self.global_tabs_list = global_tabs_list # The tabs list.
 
         # Show the tab name.
-        self.menu_name = QtWidgets.QLabel(language["title_characters_creation_menu"], alignment=QtCore.Qt.AlignCenter)
+        self.menu_name = QtWidgets.QLabel(translations["title_characters_creation_menu"], alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
 
         # Character name input.
-        self.name_label = QtWidgets.QLabel(language["label_character_name"])
+        self.name_label = QtWidgets.QLabel(translations["label_character_name"])
         self.name_input = QtWidgets.QLineEdit()
 
         # Character age input.
-        self.age_label = QtWidgets.QLabel(language["label_character_age"])
+        self.age_label = QtWidgets.QLabel(translations["label_character_age"])
         self.age_input = QtWidgets.QSpinBox()
         self.age_input.setRange(0, 150)
 
         # Positive traits input.
-        self.positive_label = QtWidgets.QLabel(language["label_character_positive_traits"])
+        self.positive_label = QtWidgets.QLabel(translations["label_character_positive_traits"])
         self.positive_input = QtWidgets.QLineEdit()
 
         # Negative traits input.
-        self.negative_label = QtWidgets.QLabel(language["label_character_negative_traits"])
+        self.negative_label = QtWidgets.QLabel(translations["label_character_negative_traits"])
         self.negative_input = QtWidgets.QLineEdit()
 
         # Character lore input.
-        self.lore_label = QtWidgets.QLabel(language["label_character_lore"])
+        self.lore_label = QtWidgets.QLabel(translations["label_character_lore"])
         self.lore_input = QtWidgets.QTextEdit()
 
         # Save button.
-        self.save_button = QtWidgets.QPushButton(language["button_save"])
+        self.save_button = QtWidgets.QPushButton(translations["button_save"])
         self.save_button.setStyleSheet(universal_stylesheet)
         self.save_button.clicked.connect(self.save_character)
 
         # Back button.
-        self.back_button = QtWidgets.QPushButton(language["button_back"])
+        self.back_button = QtWidgets.QPushButton(translations["button_back"])
         self.back_button.setStyleSheet(universal_stylesheet)
         self.back_button.clicked.connect(self.back_button_clicked)
 
@@ -374,7 +427,7 @@ if __name__ == "__main__":
     global_tabs_list.addWidget(characters_tab)
 
     # Add the settings tab to the list.
-    settings_tab = SettingsTab(global_tabs_list)
+    settings_tab = SettingsTab(global_tabs_list, translations, update_language)
     global_tabs_list.addWidget(settings_tab)
 
     # Add the character creation tab to the list.

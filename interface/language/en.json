@@ -2,9 +2,11 @@
     "button_back": "BACK",
     "button_characters_menu": "CHARACTERS",
     "button_create_character": "ADD",
+    "button_exit": "EXIT",
+    "button_no": "No",
     "button_save": "SAVE",
     "button_settings_menu": "SETTINGS",
-    "button_exit": "EXIT",
+    "button_yes": "Yes",
 
     "label_character_age": "Character Age",
     "label_character_lore": "Character Lore",
@@ -14,7 +16,10 @@
     "label_settings_fullscreen": "Fullscreen",
     "label_settings_language": "Language",
 
+    "text_settings_change_language": "To change the language, you need to restart the application. Do you agree?",
+
     "title_characters_menu": "Characters Menu",
     "title_characters_creation_menu": "Create a character",
+    "title_settings_change_language": "Change Language",
     "title_settings_menu" : "Settings"
 }

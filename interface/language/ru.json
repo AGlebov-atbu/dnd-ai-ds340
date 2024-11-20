@@ -2,9 +2,11 @@
     "button_back": "НАЗАД",
     "button_characters_menu": "ПЕРСОНАЖИ",
     "button_create_character": "НОВЫЙ",
+    "button_exit": "ВЫХОД",
+    "button_no": "Нет",
     "button_save": "СОХРАНИТЬ",
     "button_settings_menu": "НАСТРОЙКИ",
-    "button_exit": "ВЫХОД",
+    "button_yes": "Да",
 
     "label_character_age": "Возраст",
     "label_character_lore": "История персонажа",
@@ -14,7 +16,10 @@
     "label_settings_fullscreen": "Полноэкранный режим",
     "label_settings_language": "Язык",
 
+    "text_settings_change_language": "Чтобы изменить язык, нужно перезапустить приложение. Вы согласны?",
+
     "title_characters_menu": "Персонажи",
     "title_characters_creation_menu": "Создать персонажа",
+    "title_settings_change_language": "Изменить Язык",
     "title_settings_menu" : "Настройки"
 }

@@ -18,34 +18,51 @@ model = models.Transformers(llm, tokenizer)
 # Instantiate a stepper: handles prompting + output parsing
 stepper = NPCStepper(model=model)
 
-# Load JSON data
-json_file_path = "npc_data.json"
-with open(json_file_path, "r") as file:
-    npc_data = json.load(file)
-
-# Extract data from JSON
-name = npc_data.get("name", "Unknown NPC")
-occupation = npc_data.get("occupation", "unknown occupation")
-dialogue_prompt = npc_data.get("dialogue_prompt", "")
-
-# Create the input text for the model
-input_text = (
-    f"NPC Profile:\n"
-    f"Name: {name}\n"
-    f"Occupation: {occupation}\n"
-    f"Prompt: {dialogue_prompt}\n\n"
-    f"NPC Response:"
+from gigax.parse import CharacterAction
+from gigax.scene import (
+    Character,
+    Location,
+    ProtagonistCharacter,
+    ProtagonistCharacter,
+    ParameterType,
 )
 
-# Tokenize and generate response
-inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True).to("cuda")
-outputs = model.generate(inputs["input_ids"], attention_mask=inputs["attention_mask"], max_length=150)
+#mabe have user fill in background information about world if neccesary if not, delete
+context = "Medieval world"
+current_location = Location(name="Old Town", description="A quiet and peaceful town.")
+locations = [current_location] # you can add more locations to the scene
 
-# Decode the output
-npc_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+#try to import json file here
+NPCs = [
+    Character(
+    name="John the Brave",
+    description="A fearless warrior",
+    current_location=current_location,
+    )
+]
 
-# Print the generated NPC dialogue or response
-print("Generated NPC Response:")
-print(npc_response)
+#import json file here as well
+protagonist = ProtagonistCharacter(
+    name="Aldren",
+    description="Brave and curious",
+    current_location=current_location,
+    memories=["Saved the village", "Lost a friend"],
+    quests=["Find the ancient artifact", "Defeat the evil warlock"],
+    skills=[
+        Skill(
+            name="Attack",
+            description="Deliver a powerful blow",
+            parameter_types=[ParameterType.character],
+        )
+    ],
+    psychological_profile="Determined and compassionate",
+)
+
+action = stepper.get_action(
+    context=context,
+    locations=locations,
+    NPCs=NPCs,
+    protagonist=protagonist,
+)
 
 

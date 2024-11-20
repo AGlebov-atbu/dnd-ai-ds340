@@ -1,0 +1,20 @@
+{
+    "button_back": "НАЗАД",
+    "button_characters_menu": "ПЕРСОНАЖИ",
+    "button_create_character": "НОВЫЙ",
+    "button_save": "СОХРАНИТЬ",
+    "button_settings_menu": "НАСТРОЙКИ",
+    "button_exit": "ВЫХОД",
+
+    "label_character_age": "Возраст",
+    "label_character_lore": "История персонажа",
+    "label_character_name": "Имя",
+    "label_character_negative_traits": "Негативные качества (через запятую)",
+    "label_character_positive_traits": "Положительные качества (через запятую)",
+    "label_settings_fullscreen": "Полноэкранный режим",
+    "label_settings_language": "Язык",
+
+    "title_characters_menu": "Персонажи",
+    "title_characters_creation_menu": "Создать персонажа",
+    "title_settings_menu" : "Настройки"
+}

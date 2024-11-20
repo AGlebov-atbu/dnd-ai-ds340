@@ -1,0 +1,20 @@
+{
+    "button_back": "BACK",
+    "button_characters_menu": "CHARACTERS",
+    "button_create_character": "ADD",
+    "button_save": "SAVE",
+    "button_settings_menu": "SETTINGS",
+    "button_exit": "EXIT",
+
+    "label_character_age": "Character Age",
+    "label_character_lore": "Character Lore",
+    "label_character_name": "Character Name",
+    "label_character_negative_traits": "Negative Traits (comma-separated)",
+    "label_character_positive_traits": "Positive Traits (comma-separated)",
+    "label_settings_fullscreen": "Fullscreen",
+    "label_settings_language": "Language",
+
+    "title_characters_menu": "Characters Menu",
+    "title_characters_creation_menu": "Create a character",
+    "title_settings_menu" : "Settings"
+}

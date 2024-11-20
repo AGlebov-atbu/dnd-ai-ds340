@@ -4,7 +4,7 @@
 '''
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
-from settings_manager import load_user_settings, save_user_settings
+from settings_manager import load_user_settings, load_language, save_user_settings
 from characters_manager import load_user_characters, save_user_characters, get_last_cid
 
 # User's characters.
@@ -16,6 +16,8 @@ last_cid = get_last_cid()
 # Load user's settings.
 user_settings = load_user_settings()
 fullscreen_mode = user_settings.get("fullscreen", False)
+language_mode = user_settings.get("language", "en")
+language = load_language("ru")
 
 # Universal stylesheet - uses CSS syntax.
 universal_stylesheet =  """font-size: 32px;
@@ -38,18 +40,18 @@ class MainTab(QtWidgets.QWidget):
                                              alignment=QtCore.Qt.AlignCenter) # Text alignment.
         self.program_name.setStyleSheet(universal_stylesheet) # Add style to text.
 
-        # Characters button.
-        self.characters_menu_button = QtWidgets.QPushButton("CHARACTERS") # Create a button.
+        # Characters menu button.
+        self.characters_menu_button = QtWidgets.QPushButton(language["button_characters_menu"]) # Create a button.
         self.characters_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
         self.characters_menu_button.clicked.connect(self.characters_menu_button_clicked) # Go to characters menu.
 
-        # Settings button.
-        self.settings_menu_button = QtWidgets.QPushButton("SETTINGS") # Create a button.
+        # Settings menu button.
+        self.settings_menu_button = QtWidgets.QPushButton(language["button_settings_menu"]) # Create a button.
         self.settings_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
         self.settings_menu_button.clicked.connect(self.settings_menu_button_clicked) # Go to settings menu.
 
         # Exit button.
-        self.exit_button = QtWidgets.QPushButton("EXIT") # Create a button.
+        self.exit_button = QtWidgets.QPushButton(language["button_exit"]) # Create a button.
         self.exit_button.setStyleSheet(universal_stylesheet) # Add style to a button.
         self.exit_button.clicked.connect(self.exit_button_clicked) # Call exit function.
 
@@ -87,17 +89,17 @@ class SettingsTab(QtWidgets.QWidget):
         self.global_tabs_list = global_tabs_list # The tabs list.
 
         # Show the tab name.
-        self.menu_name = QtWidgets.QLabel("Settings", alignment=QtCore.Qt.AlignCenter)
+        self.menu_name = QtWidgets.QLabel(language["title_settings_menu"], alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
 
         # Screen mode settings.
-        self.fullscreen_checkbox = QtWidgets.QCheckBox("Fullscreen mode")
+        self.fullscreen_checkbox = QtWidgets.QCheckBox(language["label_settings_fullscreen"])
         self.fullscreen_checkbox.setStyleSheet(universal_stylesheet)
         self.fullscreen_checkbox.setChecked(fullscreen_mode)
         self.fullscreen_checkbox.stateChanged.connect(self.toggle_fullscreen_checkbox)
 
         # Back button.
-        self.back_button = QtWidgets.QPushButton("BACK")
+        self.back_button = QtWidgets.QPushButton(language["button_back"])
         self.back_button.setStyleSheet(universal_stylesheet)
         self.back_button.clicked.connect(self.back_button_clicked)
 
@@ -140,7 +142,7 @@ class CharactersMenuTab(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
 
         # Show the tab name.
-        self.menu_name = QtWidgets.QLabel("Characters Menu", alignment=QtCore.Qt.AlignCenter)
+        self.menu_name = QtWidgets.QLabel(language["title_characters_menu"], alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
         layout.addWidget(self.menu_name)
 
@@ -155,13 +157,13 @@ class CharactersMenuTab(QtWidgets.QWidget):
         self.scroll_area.setWidget(self.scroll_content)
 
         # Create character button.
-        self.create_character_button = QtWidgets.QPushButton("ADD")
+        self.create_character_button = QtWidgets.QPushButton(language["button_create_character"])
         self.create_character_button.setStyleSheet(universal_stylesheet)
         self.create_character_button.clicked.connect(self.create_character_button_clicked)
         layout.addWidget(self.create_character_button)
 
         # Back button.
-        self.back_button = QtWidgets.QPushButton("BACK")
+        self.back_button = QtWidgets.QPushButton(language["button_back"])
         self.back_button.setStyleSheet(universal_stylesheet)
         self.back_button.clicked.connect(self.back_button_clicked)
         layout.addWidget(self.back_button)
@@ -243,37 +245,37 @@ class CharactersCreationTab(QtWidgets.QWidget):
         self.global_tabs_list = global_tabs_list # The tabs list.
 
         # Show the tab name.
-        self.menu_name = QtWidgets.QLabel("Create a character", alignment=QtCore.Qt.AlignCenter)
+        self.menu_name = QtWidgets.QLabel(language["title_characters_creation_menu"], alignment=QtCore.Qt.AlignCenter)
         self.menu_name.setStyleSheet(universal_stylesheet)
 
         # Character name input.
-        self.name_label = QtWidgets.QLabel("Character Name:")
+        self.name_label = QtWidgets.QLabel(language["label_character_name"])
         self.name_input = QtWidgets.QLineEdit()
 
         # Character age input.
-        self.age_label = QtWidgets.QLabel("Character Age:")
+        self.age_label = QtWidgets.QLabel(language["label_character_age"])
         self.age_input = QtWidgets.QSpinBox()
         self.age_input.setRange(0, 150)
 
         # Positive traits input.
-        self.positive_label = QtWidgets.QLabel("Positive Traits (comma-separated):")
+        self.positive_label = QtWidgets.QLabel(language["label_character_positive_traits"])
         self.positive_input = QtWidgets.QLineEdit()
 
         # Negative traits input.
-        self.negative_label = QtWidgets.QLabel("Negative Traits (comma-separated):")
+        self.negative_label = QtWidgets.QLabel(language["label_character_negative_traits"])
         self.negative_input = QtWidgets.QLineEdit()
 
         # Character lore input.
-        self.lore_label = QtWidgets.QLabel("Character Lore:")
+        self.lore_label = QtWidgets.QLabel(language["label_character_lore"])
         self.lore_input = QtWidgets.QTextEdit()
 
         # Save button.
-        self.save_button = QtWidgets.QPushButton("SAVE")
+        self.save_button = QtWidgets.QPushButton(language["button_save"])
         self.save_button.setStyleSheet(universal_stylesheet)
         self.save_button.clicked.connect(self.save_character)
 
         # Back button.
-        self.back_button = QtWidgets.QPushButton("BACK")
+        self.back_button = QtWidgets.QPushButton(language["button_back"])
         self.back_button.setStyleSheet(universal_stylesheet)
         self.back_button.clicked.connect(self.back_button_clicked)
 

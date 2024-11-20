@@ -1,5 +1,6 @@
 '''
         To install pyside6 run: pip install pyside6
+        To run this app: run main.py file.
 '''
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
@@ -175,13 +176,13 @@ class CharactersMenuTab(QtWidgets.QWidget):
         # Load updated characters from the file.
         user_characters = load_user_characters()
 
-        # Очистка текущего списка в scroll_layout
+        # Clear the current scroll layout.
         for i in reversed(range(self.scroll_layout.count())):
             widget = self.scroll_layout.itemAt(i).widget()
             if widget:
                 widget.deleteLater()
 
-        # Add characters to the scroll_layout
+        # Add characters to the scroll_layout.
         for character in user_characters:
             character_row = QtWidgets.QHBoxLayout() # Horizontal layout for character's button and delete button.
 

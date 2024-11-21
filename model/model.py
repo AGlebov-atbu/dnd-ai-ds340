@@ -32,30 +32,31 @@ context = "Medieval world"
 current_location = Location(name="Old Town", description="A quiet and peaceful town.")
 locations = [current_location] # you can add more locations to the scene
 
+json_file_path = "npc_data.json"
+with open(json_file_path, "r") as file:
+    npc_data = json.load(file)
+
 #try to import json file here
 NPCs = [
     Character(
-    name="John the Brave",
-    description="A fearless warrior",
+    name=npc_data.get("name"),
+    description=npc_data.get("positive attributes"),
     current_location=current_location,
     )
 ]
 
+new_char_file_path = "new_char.json"
+with open(new_char_file_path, "r") as file:
+    new_char_data = json.load(file)
+
+
 #import json file here as well
 protagonist = ProtagonistCharacter(
-    name="Aldren",
-    description="Brave and curious",
+    name=new_char_data.get("name"),
+    description=new_char_data.get("positive attributes"),
     current_location=current_location,
-    memories=["Saved the village", "Lost a friend"],
-    quests=["Find the ancient artifact", "Defeat the evil warlock"],
-    skills=[
-        Skill(
-            name="Attack",
-            description="Deliver a powerful blow",
-            parameter_types=[ParameterType.character],
-        )
-    ],
-    psychological_profile="Determined and compassionate",
+    memories=new_char_data.get("lore"),
+    psychological_profile=new_char_data.get("positive attributes"),
 )
 
 action = stepper.get_action(

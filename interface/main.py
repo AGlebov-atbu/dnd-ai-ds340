@@ -5,6 +5,8 @@
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
 from settings_manager import load_user_settings, load_language, save_user_settings
+from PySide6.QtWidgets import QTextEdit, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout, QLabel
+from settings_manager import load_user_settings, save_user_settings
 from characters_manager import load_user_characters, save_user_characters, get_last_cid
 
 # User's characters.
@@ -32,6 +34,7 @@ universal_stylesheet =  """font-size: 32px;
 class MainTab(QtWidgets.QWidget):
     '''
         MainTab class is designed to contain the main menu of the program, that consists of:
+            - "CHAT" button, which leads to the chatting feature with the npc
             - "CHARACTERS" button, which leads to the characters' page;
             - "SETTINGS" button, which leads to the settings menu;
             - "EXIT" button, which closes the program.
@@ -47,6 +50,14 @@ class MainTab(QtWidgets.QWidget):
 
         # Characters menu button.
         self.characters_menu_button = QtWidgets.QPushButton(translations["button_characters_menu"]) # Create a button.
+
+        # Chat button.
+        self.chat_menu_button = QtWidgets.QPushButton("CHAT") # Create a button.
+        self.chat_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
+        self.chat_menu_button.clicked.connect(self.chat_button_clicked) # Open the chat box.
+
+        # Characters button.
+        self.characters_menu_button = QtWidgets.QPushButton("CHARACTERS") # Create a button.
         self.characters_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
         self.characters_menu_button.clicked.connect(self.characters_menu_button_clicked) # Go to characters menu.
 
@@ -63,6 +74,7 @@ class MainTab(QtWidgets.QWidget):
         # Layout.
         self.layout = QtWidgets.QVBoxLayout(self) # Create layout.
         self.layout.addWidget(self.program_name) # Add text label to the layout.
+        self.layout.addWidget(self.chat_menu_button) # Add chat button to the layout
         self.layout.addWidget(self.characters_menu_button) # Add characters button to the layout.
         self.layout.addWidget(self.settings_menu_button) # Add settings button to the layout.
         self.layout.addWidget(self.exit_button) # Add exit button to the layout.
@@ -78,6 +90,10 @@ class MainTab(QtWidgets.QWidget):
             settings_menu_button_clicked() - opens settings tab.
         '''
         self.global_tabs_list.setCurrentIndex(2)
+
+    def chat_button_clicked(self):
+        #opens chat window with npc
+        self.global_tabs_list.setCurrentIndex(4)
 
     def exit_button_clicked(self):
         '''
@@ -411,6 +427,39 @@ class CharactersCreationTab(QtWidgets.QWidget):
         self.global_tabs_list.setCurrentIndex(1)
 
 # TODO: implement a character's chat tab so that user can talk with a character.
+class ChatWindow(QtWidgets.QWidget):
+    """Chat interface window."""
+    def __init__(self, global_tabs_list):
+        super().__init__()
+        self.global_tabs_list = global_tabs_list # The tabs list.
+
+        # Create widgets
+        self.chat_menu = QtWidgets.QLabel("Type to the NPC", alignment=QtCore.Qt.AlignCenter)
+        self.chat_menu.setStyleSheet(universal_stylesheet)
+
+        self.user_input = QtWidgets.QLineEdit()
+
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.chat_menu)
+        layout.addWidget(self.user_input)
+
+
+    def handle_user_input(self):
+        """Handle user input and display it in the chat history."""
+        user_text = self.user_input.text().strip()
+        if user_text:
+            self.chat_history.append(f"User: {user_text}")
+            self.user_input.clear()
+
+            # Example NPC response logic
+            npc_response = self.generate_npc_response(user_text)
+            self.chat_history.append(f"NPC: {npc_response}")
+
+    def generate_npc_response(self, user_text):
+        """Generate a simple NPC response (placeholder logic)."""
+        # Replace this logic with LLM integration
+        return f"I heard you say: {user_text}"
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
@@ -433,6 +482,10 @@ if __name__ == "__main__":
     # Add the character creation tab to the list.
     character_creation_tab = CharactersCreationTab(global_tabs_list)
     global_tabs_list.addWidget(character_creation_tab)
+
+    # Add the chat box tab to the list.
+    chat_tab = ChatWindow(global_tabs_list)
+    global_tabs_list.addWidget(chat_tab)
 
     # Check settings for the fullscreen mode.
     if fullscreen_mode:

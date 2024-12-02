@@ -8,6 +8,8 @@ from settings_manager import load_user_settings, load_language, save_user_settin
 from PySide6.QtWidgets import QTextEdit, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout, QLabel
 from settings_manager import load_user_settings, save_user_settings
 from characters_manager import load_user_characters, save_user_characters, get_last_cid
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
 # User's characters.
 user_characters = load_user_characters()
@@ -92,8 +94,26 @@ class MainTab(QtWidgets.QWidget):
         self.global_tabs_list.setCurrentIndex(2)
 
     def chat_button_clicked(self):
-        #opens chat window with npc
-        self.global_tabs_list.setCurrentIndex(4)
+        """Open character selection dialog and start chat."""
+        try:
+            # Open the character selection dialog
+            dialog = CharacterSelectionDialog(user_characters)
+            if dialog.exec() == QtWidgets.QDialog.Accepted:
+                # Get the selected character name
+                selected_name = dialog.selected_character
+
+                # Find the character data
+                selected_character = next((char for char in user_characters if getattr(char, "name", None) == selected_name), None)
+                if selected_character:
+                    # Pass the character data to the ChatWindow
+                    chat_tab = ChatWindow(self.global_tabs_list, selected_character)
+                    self.global_tabs_list.addWidget(chat_tab)
+                    self.global_tabs_list.setCurrentWidget(chat_tab)
+                else:
+                    QtWidgets.QMessageBox.warning(self, "Error", "Character data not found.")
+        except FileNotFoundError:
+            QtWidgets.QMessageBox.warning(self, "Error", "Character file not found.")
+
 
     def exit_button_clicked(self):
         '''
@@ -245,6 +265,7 @@ class CharactersMenuTab(QtWidgets.QWidget):
             update_characters() - updates the displayed list of characters on the Characters page.
         '''
         # Load updated characters from the file.
+        global user_characters
         user_characters = load_user_characters()
 
         # Clear the current scroll layout.
@@ -427,38 +448,124 @@ class CharactersCreationTab(QtWidgets.QWidget):
         self.global_tabs_list.setCurrentIndex(1)
 
 # TODO: implement a character's chat tab so that user can talk with a character.
-class ChatWindow(QtWidgets.QWidget):
-    """Chat interface window."""
-    def __init__(self, global_tabs_list):
+
+class CharacterSelectionDialog(QtWidgets.QDialog):
+    """Dialog for selecting a character."""
+    def __init__(self, characters):
         super().__init__()
-        self.global_tabs_list = global_tabs_list # The tabs list.
+        self.setWindowTitle("Select a Character")
+        self.setGeometry(200, 200, 400, 300)
 
-        # Create widgets
-        self.chat_menu = QtWidgets.QLabel("Type to the NPC", alignment=QtCore.Qt.AlignCenter)
-        self.chat_menu.setStyleSheet(universal_stylesheet)
+        self.selected_character = None
 
-        self.user_input = QtWidgets.QLineEdit()
+        # Create a list widget to display character names
+        self.character_list = QtWidgets.QListWidget(self)
+        for character in characters:
+            # Adjust to access the `name` attribute of `Character` objects
+            self.character_list.addItem(character.name)
 
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(self.chat_menu)
-        layout.addWidget(self.user_input)
+        # Create "Select" and "Cancel" buttons
+        self.select_button = QtWidgets.QPushButton("Select")
+        self.select_button.clicked.connect(self.select_character)
 
+        self.cancel_button = QtWidgets.QPushButton("Cancel")
+        self.cancel_button.clicked.connect(self.reject)
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel("Select a character for the chat:"))
+        layout.addWidget(self.character_list)
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.select_button)
+        button_layout.addWidget(self.cancel_button)
+        layout.addLayout(button_layout)
+        self.setLayout(layout)
+
+    def select_character(self):
+        """Handle character selection."""
+        current_item = self.character_list.currentItem()
+        if current_item:
+            self.selected_character = current_item.text()
+            self.accept()
+        else:
+            QtWidgets.QMessageBox.warning(self, "No Selection", "Please select a character.")
+
+
+class ChatWindow(QtWidgets.QWidget):
+    """Chat interface window with LLM integration."""
+    def __init__(self, global_tabs_list, character_data):
+        super().__init__()
+        self.global_tabs_list = global_tabs_list  
+        self.character_data = character_data #Store character data
+
+        # Initialize the LLM
+        self.tokenizer = AutoTokenizer.from_pretrained("Gigax/NPC-LLM-7B")
+        self.model = AutoModelForCausalLM.from_pretrained("Gigax/NPC-LLM-7B", device_map="auto", torch_dtype=torch.float16)
+
+        # Conversation log
+        self.chat_history = QTextEdit(self)
+        self.chat_history.setReadOnly(True)
+
+        self.user_input = QLineEdit(self)
+        self.user_input.setPlaceholderText("Type your message here...")
+        self.user_input.returnPressed.connect(self.handle_user_input)
+
+        self.send_button = QPushButton("Send", self)
+        self.send_button.clicked.connect(self.handle_user_input)
+
+        # Layout
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel(f"Chat with {character_data['name']}:", alignment=QtCore.Qt.AlignCenter))
+        layout.addWidget(self.chat_history)
+        input_layout = QHBoxLayout()
+        input_layout.addWidget(self.user_input)
+        input_layout.addWidget(self.send_button)
+        layout.addLayout(input_layout)
+
+    def load_character_data(self):
+        """Load the character's data from the JSON file."""
+        try:
+            with open("user_characters.json", "r") as file:
+                characters = json.load(file)
+                for char in characters:
+                    if char["cid"] == self.character_id:
+                        return char
+            raise ValueError("Character not found.")
+        except FileNotFoundError:
+            QtWidgets.QMessageBox.warning(self, "Error", "Character file not found.")
+            return {"name": "Unknown NPC", "lore": "", "positive_traits": [], "negative_traits": []}
 
     def handle_user_input(self):
         """Handle user input and display it in the chat history."""
         user_text = self.user_input.text().strip()
         if user_text:
+            # Add user's message to the chat history
             self.chat_history.append(f"User: {user_text}")
             self.user_input.clear()
 
-            # Example NPC response logic
+            # Generate NPC response
             npc_response = self.generate_npc_response(user_text)
+
+            # Add NPC's response to the chat history
             self.chat_history.append(f"NPC: {npc_response}")
 
     def generate_npc_response(self, user_text):
-        """Generate a simple NPC response (placeholder logic)."""
-        # Replace this logic with LLM integration
-        return f"I heard you say: {user_text}"
+        """Generate a response using the LLM."""
+        character_context = (
+            f"NPC Name: {self.character_data['name']}\n"
+            f"Lore: {self.character_data['lore']}\n"
+            f"Positive Traits: {', '.join(self.character_data['positive_traits'])}\n"
+            f"Negative Traits: {', '.join(self.character_data['negative_traits'])}\n\n"
+            f"User: {user_text}\n"
+            f"NPC:"
+        )
+        inputs = self.tokenizer(character_context, return_tensors="pt", padding=True, truncation=True).to("cuda")
+        outputs = self.model.generate(inputs["input_ids"], max_length=150, do_sample=True, temperature=0.7)
+        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        # Extract only the NPC's response
+        return response.split("NPC:")[-1].strip()
+
 
 
 if __name__ == "__main__":
@@ -482,10 +589,6 @@ if __name__ == "__main__":
     # Add the character creation tab to the list.
     character_creation_tab = CharactersCreationTab(global_tabs_list)
     global_tabs_list.addWidget(character_creation_tab)
-
-    # Add the chat box tab to the list.
-    chat_tab = ChatWindow(global_tabs_list)
-    global_tabs_list.addWidget(chat_tab)
 
     # Check settings for the fullscreen mode.
     if fullscreen_mode:

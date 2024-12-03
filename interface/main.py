@@ -94,18 +94,24 @@ class MainTab(QtWidgets.QWidget):
         self.global_tabs_list.setCurrentIndex(2)
 
     def chat_button_clicked(self):
-        """Open character selection dialog and start chat."""
+        """
+            Open character selection dialog and start chat.
+        """
         try:
-            # Open the character selection dialog
+            # Open the character selection dialog.
             dialog = CharacterSelectionDialog(user_characters)
             if dialog.exec() == QtWidgets.QDialog.Accepted:
-                # Get the selected character name
+                # Get the selected character name.
                 selected_name = dialog.selected_character
 
-                # Find the character data
-                selected_character = next((char for char in user_characters if getattr(char, "name", None) == selected_name), None)
+                # Find the character data.
+                for character in user_characters:
+                    if (selected_name == character.name):
+                        selected_character = character
+                        break
+                
                 if selected_character:
-                    # Pass the character data to the ChatWindow
+                    # Pass the character data to the ChatWindow.
                     chat_tab = ChatWindow(self.global_tabs_list, selected_character)
                     self.global_tabs_list.addWidget(chat_tab)
                     self.global_tabs_list.setCurrentWidget(chat_tab)
@@ -447,8 +453,6 @@ class CharactersCreationTab(QtWidgets.QWidget):
         '''
         self.global_tabs_list.setCurrentIndex(1)
 
-# TODO: implement a character's chat tab so that user can talk with a character.
-
 class CharacterSelectionDialog(QtWidgets.QDialog):
     """Dialog for selecting a character."""
     def __init__(self, characters):
@@ -492,7 +496,9 @@ class CharacterSelectionDialog(QtWidgets.QDialog):
 
 
 class ChatWindow(QtWidgets.QWidget):
-    """Chat interface window with LLM integration."""
+    """
+        Chat interface window with LLM integration.
+    """
     def __init__(self, global_tabs_list, character_data):
         super().__init__()
         self.global_tabs_list = global_tabs_list  
@@ -515,7 +521,7 @@ class ChatWindow(QtWidgets.QWidget):
 
         # Layout
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel(f"Chat with {character_data['name']}:", alignment=QtCore.Qt.AlignCenter))
+        layout.addWidget(QLabel(f"Chat with {character_data.name}:", alignment=QtCore.Qt.AlignCenter))
         layout.addWidget(self.chat_history)
         input_layout = QHBoxLayout()
         input_layout.addWidget(self.user_input)
@@ -523,7 +529,9 @@ class ChatWindow(QtWidgets.QWidget):
         layout.addLayout(input_layout)
 
     def load_character_data(self):
-        """Load the character's data from the JSON file."""
+        """
+            Load the character's data from the JSON file.
+        """
         try:
             with open("user_characters.json", "r") as file:
                 characters = json.load(file)
@@ -533,37 +541,45 @@ class ChatWindow(QtWidgets.QWidget):
             raise ValueError("Character not found.")
         except FileNotFoundError:
             QtWidgets.QMessageBox.warning(self, "Error", "Character file not found.")
-            return {"name": "Unknown NPC", "lore": "", "positive_traits": [], "negative_traits": []}
+            return {"name": "Unknown NPC",
+                    "lore": "",
+                    "positive_traits": [],
+                    "negative_traits": []}
 
     def handle_user_input(self):
-        """Handle user input and display it in the chat history."""
+        """
+            Handle user input and display it in the chat history.
+        """
         user_text = self.user_input.text().strip()
         if user_text:
-            # Add user's message to the chat history
+            # Add user's message to the chat history.
             self.chat_history.append(f"User: {user_text}")
             self.user_input.clear()
 
-            # Generate NPC response
+            # Generate NPC response.
             npc_response = self.generate_npc_response(user_text)
 
-            # Add NPC's response to the chat history
+            # Add NPC's response to the chat history.
             self.chat_history.append(f"NPC: {npc_response}")
 
     def generate_npc_response(self, user_text):
-        """Generate a response using the LLM."""
+        """
+            Generate a response using the LLM.
+        """
         character_context = (
-            f"NPC Name: {self.character_data['name']}\n"
-            f"Lore: {self.character_data['lore']}\n"
-            f"Positive Traits: {', '.join(self.character_data['positive_traits'])}\n"
-            f"Negative Traits: {', '.join(self.character_data['negative_traits'])}\n\n"
+            f"NPC Name: {self.character_data.name}\n"
+            f"Lore: {self.character_data.lore}\n"
+            f"Positive Traits: {', '.join(self.character_data.positive_traits)}\n"
+            f"Negative Traits: {', '.join(self.character_data.negative_traits)}\n\n"
             f"User: {user_text}\n"
             f"NPC:"
         )
+
         inputs = self.tokenizer(character_context, return_tensors="pt", padding=True, truncation=True).to("cuda")
         outputs = self.model.generate(inputs["input_ids"], max_length=150, do_sample=True, temperature=0.7)
         response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        # Extract only the NPC's response
+        # Extract only the NPC's response.
         return response.split("NPC:")[-1].strip()
 
 

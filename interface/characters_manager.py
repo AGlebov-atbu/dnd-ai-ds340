@@ -12,7 +12,9 @@ class Character:
         self.lore = lore
 
 def load_user_characters():
-    """Load characters from a JSON file."""
+    """
+        Load characters from a JSON file.
+    """
     try:
         with open(CHARACTERS_FILE, "r") as file:
             characters_data = json.load(file)
@@ -26,13 +28,17 @@ def load_user_characters():
 
 
 def save_user_characters(characters):
-    """Save characters to a JSON file."""
+    """
+        Save characters to a JSON file.
+    """
     with open(CHARACTERS_FILE, "w") as file:
         # Transfer Character objects only.
         json.dump([char.__dict__ if hasattr(char, "__dict__") else char for char in characters], file)
 
 def get_last_cid():
-    """Return the highest cid used or -1 if no characters exist."""
+    """
+        Return the highest cid used or -1 if no characters exist.
+    """
     try:
         with open(CHARACTERS_FILE, "r") as file:
             characters_data = json.load(file)

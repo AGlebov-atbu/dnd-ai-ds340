@@ -486,7 +486,9 @@ class CharacterSelectionDialog(QtWidgets.QDialog):
         self.setLayout(layout)
 
     def select_character(self):
-        """Handle character selection."""
+        """
+            Handle character selection.
+        """
         current_item = self.character_list.currentItem()
         if current_item:
             self.selected_character = current_item.text()
@@ -519,6 +521,11 @@ class ChatWindow(QtWidgets.QWidget):
         self.send_button = QPushButton("Send", self)
         self.send_button.clicked.connect(self.handle_user_input)
 
+        # Back button.
+        self.back_button = QtWidgets.QPushButton(translations["button_back"])
+        self.back_button.setStyleSheet(universal_stylesheet)
+        self.back_button.clicked.connect(self.back_button_clicked)
+
         # Layout
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel(f"Chat with {character_data.name}:", alignment=QtCore.Qt.AlignCenter))
@@ -527,6 +534,13 @@ class ChatWindow(QtWidgets.QWidget):
         input_layout.addWidget(self.user_input)
         input_layout.addWidget(self.send_button)
         layout.addLayout(input_layout)
+        layout.addWidget(self.back_button)
+
+    def back_button_clicked(self):
+        '''
+            back_button_clicked() - returns to the main menu under 0 index in tabs list.
+        '''
+        self.global_tabs_list.setCurrentIndex(0)
 
     def load_character_data(self):
         """

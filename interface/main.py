@@ -33,6 +33,12 @@ universal_stylesheet =  """font-size: 32px;
                            font-family: Times New Roman;
                         """
 
+
+
+# Initialize the LLM
+tokenizer = AutoTokenizer.from_pretrained("Gigax/NPC-LLM-7B")
+model = AutoModelForCausalLM.from_pretrained("Gigax/NPC-LLM-7B", device_map="auto", torch_dtype=torch.float16)
+
 class MainTab(QtWidgets.QWidget):
     '''
         MainTab class is designed to contain the main menu of the program, that consists of:
@@ -56,7 +62,7 @@ class MainTab(QtWidgets.QWidget):
         # Chat button.
         self.chat_menu_button = QtWidgets.QPushButton("CHAT") # Create a button.
         self.chat_menu_button.setStyleSheet(universal_stylesheet) # Add style to a button.
-        self.chat_menu_button.clicked.connect(self.chat_button_clicked) # Open the chat box.
+        self.chat_menu_button.clicked.connect(self.chat_button_clicked) # Open the chat tab.
 
         # Characters button.
         self.characters_menu_button = QtWidgets.QPushButton("CHARACTERS") # Create a button.
@@ -506,10 +512,6 @@ class ChatWindow(QtWidgets.QWidget):
         self.global_tabs_list = global_tabs_list  
         self.character_data = character_data #Store character data
 
-        # Initialize the LLM
-        self.tokenizer = AutoTokenizer.from_pretrained("Gigax/NPC-LLM-7B")
-        self.model = AutoModelForCausalLM.from_pretrained("Gigax/NPC-LLM-7B", device_map="auto", torch_dtype=torch.float16)
-
         # Conversation log
         self.chat_history = QTextEdit(self)
         self.chat_history.setReadOnly(True)
@@ -589,9 +591,9 @@ class ChatWindow(QtWidgets.QWidget):
             f"NPC:"
         )
 
-        inputs = self.tokenizer(character_context, return_tensors="pt", padding=True, truncation=True).to("cuda")
-        outputs = self.model.generate(inputs["input_ids"], attention_mask=inputs["attention_mask"], max_length=100, do_sample=True, temperature=0.7)
-        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        inputs = tokenizer(character_context, return_tensors="pt", padding=True, truncation=True).to("cuda")
+        outputs = model.generate(inputs["input_ids"], attention_mask=inputs["attention_mask"], max_length=100, do_sample=True, temperature=0.7)
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         # Extract only the NPC's response.
         return response.split("NPC:")[-1].strip()

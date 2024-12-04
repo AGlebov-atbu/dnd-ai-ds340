@@ -37,7 +37,7 @@ universal_stylesheet =  """font-size: 32px;
 
 # Initialize the LLM
 tokenizer = AutoTokenizer.from_pretrained("Gigax/NPC-LLM-7B")
-model = AutoModelForCausalLM.from_pretrained("Gigax/NPC-LLM-7B", device_map="auto", torch_dtype=torch.float16)
+model = AutoModelForCausalLM.from_pretrained("Gigax/NPC-LLM-7B", load_in_4bit = True, device_map="auto", torch_dtype=torch.float16)
 
 class MainTab(QtWidgets.QWidget):
     '''

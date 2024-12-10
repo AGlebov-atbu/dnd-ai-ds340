@@ -52,7 +52,7 @@ class MainTab(QtWidgets.QWidget):
         self.global_tabs_list = global_tabs_list # The tabs list.
 
         # Program name (to be discussed). 
-        self.program_name = QtWidgets.QLabel("D&D AI CHATBOTS", # Create a text label.
+        self.program_name = QtWidgets.QLabel("RolePlayAI", # Create a text label.
                                              alignment=QtCore.Qt.AlignCenter) # Text alignment.
         self.program_name.setStyleSheet(universal_stylesheet) # Add style to text.
 

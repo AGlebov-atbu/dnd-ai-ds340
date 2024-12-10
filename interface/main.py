@@ -592,10 +592,9 @@ class ChatWindow(QtWidgets.QWidget):
         )
 
         inputs = tokenizer(character_context, return_tensors="pt", padding=True, truncation=True).to("cuda")
-        outputs = model.generate(inputs["input_ids"], attention_mask=inputs["attention_mask"], max_length=100, do_sample=True, temperature=0.7)
+        outputs = model.generate(inputs["input_ids"], attention_mask=inputs["attention_mask"], max_length=1000, do_sample=True, temperature=0.8)
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        # Extract only the NPC's response.
         return response.split("NPC:")[-1].strip()
 
 
